@@ -99,3 +99,5 @@ def init_db():
             FOREIGN KEY(tag_id) REFERENCES tags(id)
         )
         """)
+
+        con.commit()
