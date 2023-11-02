@@ -2,6 +2,9 @@ from fastapi import FastAPI
 
 from routes.user import user_router
 from routes.task import task_router
+from db.database import init_db
+
+init_db()
 
 app = FastAPI()
 
