@@ -1,14 +1,11 @@
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
-
-from models.user import User
 
 
 class CommentBase(BaseModel):
     message: str
-    sender: User
-    sent_at: str
-    edited_at: Optional[str] = None
+    sender_id: int
     task_id: int
 
 
@@ -17,4 +14,6 @@ class Comment(CommentBase):
 
 
 class CommentInDB(BaseModel):
+    sent_at: datetime
+    edited_at: Optional[datetime] = None
     id: int

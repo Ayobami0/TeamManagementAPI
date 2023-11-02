@@ -1,9 +1,7 @@
+from datetime import datetime
 from typing import List, Optional
 from enum import Enum
 from pydantic import BaseModel
-
-from models.comment import Comment
-from models.user import User
 
 
 class TaskStatus(Enum):
@@ -15,18 +13,17 @@ class TaskStatus(Enum):
 class TaskBase(BaseModel):
     title: str
     description: str
-    created_at: str
-    updated_at: Optional[str] = None
-    completed_at: Optional[str] = None
     tags: Optional[List[str]] = None
     status: TaskStatus
-    assigner: User
-    assignees: Optional[List[User]] = None
-    comments: Optional[List[Comment]] = None
+    assigner_id: int
 
 
-class TaskInDB(BaseModel):
+class TaskInDB(TaskBase):
     id: int
+    updated_at: Optional[datetime] = None
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+    assignees_id: Optional[List[int]] = None
 
 
 class Task(TaskBase):
