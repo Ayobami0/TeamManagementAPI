@@ -1,2 +1,2 @@
 # TeamManagementAPI
-An REST API for task management within teams.
+A REST API for task management within teams.

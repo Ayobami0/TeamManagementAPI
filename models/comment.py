@@ -13,7 +13,7 @@ class Comment(CommentBase):
     pass
 
 
-class CommentInDB(BaseModel):
+class CommentInDB(CommentBase):
     sent_at: datetime
     edited_at: Optional[datetime] = None
     id: int

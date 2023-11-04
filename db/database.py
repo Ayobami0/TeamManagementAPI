@@ -57,6 +57,7 @@ def init_db():
             edited_at TIMESTAMP DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
             task_id INT,
             poster_id INT,
+            message VARCHAR(255),
             PRIMARY KEY (id),
             FOREIGN KEY(task_id) REFERENCES tasks(id),
             FOREIGN KEY(poster_id) REFERENCES users(id)

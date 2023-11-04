@@ -5,7 +5,7 @@ from pydantic import BaseModel, EmailStr
 class UserBase(BaseModel):
     username: str
     email: EmailStr
-    assigned_tasks: Optional[List] = None
+    assigned_tasks: List[int] = []
 
 
 class User(UserBase):

@@ -13,9 +13,9 @@ class TaskStatus(Enum):
 class TaskBase(BaseModel):
     title: str
     description: str
-    tags: Optional[List[str]] = None
     status: TaskStatus
     assigner_id: int
+    assignees_id: List[int] = []
 
 
 class TaskInDB(TaskBase):
@@ -23,7 +23,6 @@ class TaskInDB(TaskBase):
     updated_at: Optional[datetime] = None
     created_at: datetime
     completed_at: Optional[datetime] = None
-    assignees_id: Optional[List[int]] = None
 
 
 class Task(TaskBase):
