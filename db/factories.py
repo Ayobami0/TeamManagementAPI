@@ -1,7 +1,9 @@
 from typing import Tuple
+from db.crud.tags import get_tasks_with_tag
 from db.crud.tasks import get_users_assigned_task
 from db.crud.users import get_tasks_assigned_user
 from models.comment import CommentInDB
+from models.tags import TagInDB
 
 from models.task import TaskInDB, TaskStatus
 from models.user import UserInDB
@@ -60,4 +62,16 @@ def as_CommentDB(db_result: Tuple) -> CommentInDB:
         sender_id=sender_id,
         task_id=task_id,
         id=id,
+    )
+
+
+def as_TagDB(db_result: Tuple) -> TagInDB:
+    id, tag_name = db_result
+
+    tasks = [task_id[0] for task_id in get_tasks_with_tag(id)]
+
+    return TagInDB(
+        id=id,
+        tag_name=tag_name,
+        tasks=tasks
     )
