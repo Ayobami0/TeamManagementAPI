@@ -1,6 +1,6 @@
 from typing import List, Optional
 from typing_extensions import Annotated
-from fastapi import APIRouter, Body, HTTPException, status
+from fastapi import APIRouter, Body, HTTPException, status, Depends
 from db.crud.tasks import (
     add_task_comments,
     assign_task_to_user,
@@ -24,12 +24,17 @@ from models.comment import Comment, CommentInDB
 from models.task import Task, TaskInDB, TaskStatus
 from models.user import UserInDB
 from routes.user import get_user_by_id
+from security.utils import get_current_user
 
-task_router = APIRouter(tags=["Tasks"], prefix="/tasks")
+task_router = APIRouter(
+    tags=["Tasks"],
+    prefix="/tasks",
+    dependencies=[Depends(get_current_user)],
+)
 
 
 # Tasks
-@task_router.get("/", response_model=List[TaskInDB])
+@task_router.get("", response_model=List[TaskInDB])
 async def get_tasks(
     status: Optional[TaskStatus] = None,
     limit: int = 10,
@@ -49,7 +54,7 @@ async def get_task(id: int):
     return task
 
 
-@task_router.post("/", response_model=TaskInDB)
+@task_router.post("", response_model=TaskInDB)
 async def create_task(task: Task):
     task_id = create_new_task(task)
     task_inDB = get_task_by_id(task_id)
@@ -189,14 +194,8 @@ async def add_comment(id: int, comment: Comment):
 
     comment_id = add_task_comments(comment)
 
-    if comment_id is None:
-        # TODO: Do Something
-        pass
 
     comment_in_DB = get_task_comments_by_id(comment_id)
-
-    if comment_in_DB is None:
-        pass
 
     return as_CommentDB(comment_in_DB)
 

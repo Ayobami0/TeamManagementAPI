@@ -1,6 +1,6 @@
 from typing import List
 from typing_extensions import Annotated
-from fastapi import APIRouter, Body, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
 from mysql.connector.errors import IntegrityError
 from db.crud.tags import (
@@ -15,8 +15,13 @@ from db.crud.tasks import get_task_by_id
 from db.factories import as_TagDB
 
 from models.tags import TagCreate, TagInDB
+from security.utils import get_current_user
 
-tag_router = APIRouter(prefix="/tags", tags=["Tags"])
+tag_router = APIRouter(
+    prefix="/tags",
+    tags=["Tags"],
+    dependencies=[Depends(get_current_user)],
+)
 
 
 @tag_router.get("/", response_model=List[TagInDB])
@@ -37,7 +42,9 @@ async def get_tag_by_id(id: int):
     )
 
 
-@tag_router.post("/",)
+@tag_router.post(
+    "/",
+)
 async def add_tag(tag: TagCreate):
     tag_in_db_id = create_new_tag(tag.tag_name)
 

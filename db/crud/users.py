@@ -1,6 +1,7 @@
 from typing import Any, List, Tuple
 from db.database import connect_to_database
 from models.user import UserCreate, UserInDB
+import importlib
 
 
 def create_new_user(user: UserCreate) -> int:
@@ -8,14 +9,16 @@ def create_new_user(user: UserCreate) -> int:
         SQLTEXT = """
             INSERT INTO users (username, password, email)
             VALUES (%s, %s, %s)"""
-        # TODO:
-        #   HASHING PASSWORD FUNCTION GOES HERE.
-        #   password WONT GO DIRECTLY INTO DATABASE.
-        PARAM = (user.username, user.password, user.email)
+        get_password_hash = importlib.import_module(
+            "security.utils",
+        ).get_password_hash
+
+        PARAM = (user.username, get_password_hash(user.password), user.email)
 
         cur = con.cursor()
 
         cur.execute(SQLTEXT, tuple(PARAM))
+        con.commit()
         user_id = cur.lastrowid
 
         return user_id
@@ -60,6 +63,7 @@ def read_user_by_email_from_db(email_address: str) -> Tuple:
         result = cur.fetchone()
 
         return result
+
 
 def delete_user_from_db(user_id: int) -> int:
     with connect_to_database() as con:

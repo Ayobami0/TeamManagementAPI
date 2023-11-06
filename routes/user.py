@@ -1,5 +1,6 @@
 from typing import List
-from fastapi import APIRouter, HTTPException, Response, status
+from fastapi import APIRouter, HTTPException, Response, status, Depends
+from fastapi.responses import JSONResponse
 
 # from fastapi.responses import JSONResponse
 from db.crud.tasks import get_task_by_id
@@ -15,11 +16,20 @@ from db.factories import as_TaskDB, as_UserDB
 from models.task import Task
 
 from models.user import UserCreate, UserInDB
+from security.utils import get_current_user
 
-user_router = APIRouter(tags=["Users"], prefix="/users")
+user_create_router = APIRouter(
+    prefix="/users",
+    tags=["Users"]
+)
+user_router = APIRouter(
+    tags=["Users"],
+    prefix="/users",
+    dependencies=[Depends(get_current_user)],
+)
 
 
-@user_router.get("/", response_model=List[UserInDB])
+@user_router.get("", response_model=List[UserInDB])
 async def get_users(limit: int = 10, offset: int = 0):
     users = [as_UserDB(user) for user in read_users_from_db(limit, offset)]
     return users
@@ -39,7 +49,7 @@ async def get_user_by_id(id: int):
     return user
 
 
-@user_router.post("/create", response_model=UserInDB)
+@user_create_router.post("/create", response_model=UserInDB,)
 async def create_user(user: UserCreate, response: Response):
     user_exist = read_user_by_email_from_db(user.email)
     if user_exist is not None:
@@ -49,6 +59,9 @@ async def create_user(user: UserCreate, response: Response):
     new_user_id = create_new_user(user)
 
     new_user = read_user_by_id_from_db(new_user_id)
+
+    if new_user is None:
+        return JSONResponse({"message": "User was not created"}, 500)
 
     return as_UserDB(new_user)
 

@@ -1,19 +1,14 @@
-import os
-
 from mysql.connector import connect
-
-USERNAME = os.environ.get('AZURE_MYSQL_USER', 'root')
-PASSWORD = os.environ.get('AZURE_MYSQL_PASSWORD', 'root')
-HOSTNAME = os.environ.get('AZURE_MYSQL_HOST', 'localhost')
-DB_NAME = os.environ.get('AZURE_MYSQL_NAME', 'test')
+import config
 
 
 def connect_to_database():
     db = connect(
-        host=HOSTNAME,
-        user=USERNAME,
-        password=PASSWORD,
-        database=DB_NAME
+        host=config.HOSTNAME,
+        user=config.USERNAME,
+        password=config.PASSWORD,
+        database=config.DB_NAME,
+        port=config.PORT,
     )
     return db
 
@@ -23,7 +18,8 @@ def init_db():
         cur = con.cursor()
 
         # Users Table
-        cur.execute("""
+        cur.execute(
+            """
         CREATE TABLE IF NOT EXISTS users (
             id INT AUTO_INCREMENT,
             username VARCHAR(255),
@@ -31,10 +27,12 @@ def init_db():
             email VARCHAR(255),
             PRIMARY KEY (id)
         )
-        """)
+        """
+        )
 
         # Tasks table
-        cur.execute("""
+        cur.execute(
+            """
         CREATE TABLE IF NOT EXISTS tasks (
             id INT AUTO_INCREMENT,
             title VARCHAR(255) NOT NULL,
@@ -47,10 +45,12 @@ def init_db():
             PRIMARY KEY (id),
             FOREIGN KEY (assigner_id) REFERENCES users(id)
         )
-        """)
+        """
+        )
 
         # Comments Table
-        cur.execute("""
+        cur.execute(
+            """
         CREATE TABLE IF NOT EXISTS comments (
             id INT AUTO_INCREMENT,
             posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -62,18 +62,22 @@ def init_db():
             FOREIGN KEY(task_id) REFERENCES tasks(id),
             FOREIGN KEY(poster_id) REFERENCES users(id)
         )
-        """)
+        """
+        )
 
         # Tags table
-        cur.execute("""
+        cur.execute(
+            """
         CREATE TABLE IF NOT EXISTS tags (
             id INT PRIMARY KEY AUTO_INCREMENT,
             tag_name VARCHAR(255) NOT NULL
         )
-        """)
+        """
+        )
 
         # Junction tables
-        cur.execute("""
+        cur.execute(
+            """
         CREATE TABLE IF NOT EXISTS user_task (
             user_id INT,
             task_id INT,
@@ -85,9 +89,11 @@ def init_db():
             FOREIGN KEY(task_id) REFERENCES tasks(id),
             FOREIGN KEY(user_id) REFERENCES users(id)
         )
-        """)
+        """
+        )
 
-        cur.execute("""
+        cur.execute(
+            """
         CREATE TABLE IF NOT EXISTS task_tag (
             tag_id INT,
             task_id INT,
@@ -99,6 +105,7 @@ def init_db():
             FOREIGN KEY(task_id) REFERENCES tasks(id),
             FOREIGN KEY(tag_id) REFERENCES tags(id)
         )
-        """)
+        """
+        )
 
         con.commit()
