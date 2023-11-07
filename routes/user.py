@@ -7,21 +7,19 @@ from db.crud.tasks import get_task_by_id
 from db.crud.users import (
     create_new_user,
     delete_user_from_db,
+    get_groups_joined_by_user_in_db,
     read_user_by_email_from_db,
     read_user_by_id_from_db,
     read_users_from_db,
     update_user_from_db,
 )
-from db.factories import as_TaskDB, as_UserDB
+from db.factories import as_GroupDB, as_TaskDB, as_UserDB
 from models.task import Task
 
 from models.user import UserCreate, UserInDB
 from security.utils import get_current_user
 
-user_create_router = APIRouter(
-    prefix="/users",
-    tags=["Users"]
-)
+user_create_router = APIRouter(prefix="/users", tags=["Auth"])
 user_router = APIRouter(
     tags=["Users"],
     prefix="/users",
@@ -49,7 +47,10 @@ async def get_user_by_id(id: int):
     return user
 
 
-@user_create_router.post("/create", response_model=UserInDB,)
+@user_create_router.post(
+    "/create",
+    response_model=UserInDB,
+)
 async def create_user(user: UserCreate, response: Response):
     user_exist = read_user_by_email_from_db(user.email)
     if user_exist is not None:
@@ -111,3 +112,24 @@ async def get_tasks_assigned_to_user(
             tasks.append(as_TaskDB(get_task_by_id(user.assigned_tasks[i])))
 
     return tasks
+
+
+@user_router.get("/{id}/groups", response_model=List[Task])
+async def get_groups_joined_by_user(
+    id: int,
+    limit: int = 10,
+    offset: int = 0,
+):
+    db_tuple = read_user_by_id_from_db(id)
+    if db_tuple is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {id} does not exist.",
+        )
+    groups = [
+        as_GroupDB(group)
+        for group in get_groups_joined_by_user_in_db(id, limit, offset)
+    ]
+
+    return groups
+

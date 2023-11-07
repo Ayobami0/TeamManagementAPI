@@ -1,4 +1,4 @@
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional
 from db.database import connect_to_database
 from models.comment import Comment
 from models.task import Task, TaskStatus
@@ -9,7 +9,7 @@ from models.task import Task, TaskStatus
 ###########################
 def create_new_task(task: Task) -> int:
     with connect_to_database() as con:
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         cur.execute(
             """
@@ -31,14 +31,14 @@ def create_new_task(task: Task) -> int:
         task_id = cur.lastrowid
 
         if task.assignees_id is not None:
-            assign_task(task_id, task.assignees_id)
+            assign_task_to_user(task_id, task.assignees_id)
 
         return task_id
 
 
-def get_task_by_id(id: int) -> Tuple:
+def get_task_by_id(id: int) -> dict:
     with connect_to_database() as con:
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         cur.execute(
             """
@@ -55,7 +55,7 @@ def get_all_task(
     limit: int,
     offset: int,
     status: Optional[TaskStatus] = None,
-) -> List[Tuple]:
+) -> List[dict]:
     with connect_to_database() as con:
         SQLTEXT = """SELECT * from tasks """
         PARAM: List[Any] = [limit, offset]
@@ -65,7 +65,7 @@ def get_all_task(
             PARAM.insert(0, status.value)
 
         SQLTEXT += """LIMIT %s OFFSET %s"""
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         cur.execute(SQLTEXT, tuple(PARAM))
         result = cur.fetchall()
@@ -78,7 +78,7 @@ def delete_task_from_db(task_id: int) -> int:
         SQLTEXT = """DELETE FROM tasks WHERE id = %s"""
         PARAM = (task_id,)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         cur.execute(SQLTEXT, tuple(PARAM))
         con.commit()
@@ -90,7 +90,7 @@ def update_task_db_status(task_id: int, status: TaskStatus):
         SQLTEXT = """UPDATE tasks SET status = %s WHERE id = %s"""
         PARAM = (status, task_id)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, tuple(PARAM))
 
         con.commit()
@@ -101,7 +101,7 @@ def update_task_db_description(task_id: int, description: str):
         SQLTEXT = """UPDATE tasks SET description = %s WHERE id = %s"""
         PARAM = (description, task_id)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, tuple(PARAM))
 
         con.commit()
@@ -112,7 +112,7 @@ def update_task_db_title(task_id: int, title: str):
         SQLTEXT = """UPDATE tasks SET title = %s WHERE id = %s"""
         PARAM = (title, task_id)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, tuple(PARAM))
 
         con.commit()
@@ -128,7 +128,7 @@ def assign_task_to_user(task_id: int, users_id: List[int]) -> int:
         """
         PARAMS = tuple(zip(users_id, [task_id for _ in range(len(users_id))]))
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.executemany(SQLTEXT, PARAMS)
 
         con.commit()
@@ -142,21 +142,21 @@ def unassign_task_from_user(task_id: int, users_id: List[int]) -> int:
         """
         PARAMS = tuple(zip(users_id, [task_id for _ in range(len(users_id))]))
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.executemany(SQLTEXT, PARAMS)
 
         con.commit()
         return cur.lastrowid
 
 
-def get_users_assigned_task(task_id: int) -> List[Tuple]:
+def get_users_assigned_task(task_id: int) -> List[dict]:
     with connect_to_database() as con:
         SQLTEXT = """
             SELECT user_id FROM user_task WHERE task_id = %s
         """
         PARAM = (task_id,)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)
 
         result = cur.fetchall()
@@ -167,14 +167,14 @@ def get_users_assigned_task(task_id: int) -> List[Tuple]:
 ############################
 # TASK COMMENTS            #
 ###########################
-def get_tasks_comments(task_id: int) -> List[Tuple]:
+def get_tasks_comments(task_id: int) -> List[dict]:
     with connect_to_database() as con:
         SQLTEXT = """
         SELECT * FROM comments WHERE task_id = %s
         """
         PARAM = (task_id,)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)
 
         result = cur.fetchall()
@@ -182,14 +182,14 @@ def get_tasks_comments(task_id: int) -> List[Tuple]:
         return result
 
 
-def get_task_comments_by_id(comment_id: int) -> Tuple:
+def get_task_comments_by_id(comment_id: int) -> dict:
     with connect_to_database() as con:
         SQLTEXT = """
         SELECT * FROM comments WHERE id = %s
         """
         PARAM = (comment_id,)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)
 
         result = cur.fetchone()
@@ -205,7 +205,7 @@ def add_task_comments(comment: Comment) -> int:
         """
         PARAM = (comment.message, comment.sender_id, comment.task_id,)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)
 
         con.commit()
@@ -220,7 +220,7 @@ def delete_task_comments(comment_id: int) -> int:
         """
         PARAM = (comment_id,)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)
 
         con.commit()
@@ -228,14 +228,14 @@ def delete_task_comments(comment_id: int) -> int:
         return cur.lastrowid
 
 
-def edit_task_comments(comment_id: int, message: str) -> Tuple:
+def edit_task_comments(comment_id: int, message: str) -> dict:
     with connect_to_database() as con:
         SQLTEXT = """
         UPDATE comments SET message = %s WHERE id = comment_id
         """
         PARAM = (message, comment_id,)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)
 
         con.commit()

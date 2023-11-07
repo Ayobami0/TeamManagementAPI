@@ -14,6 +14,7 @@ class TaskBase(BaseModel):
     title: str
     description: str
     status: TaskStatus
+    group_id: int
     assigner_id: int
     assignees_id: List[int] = []
 

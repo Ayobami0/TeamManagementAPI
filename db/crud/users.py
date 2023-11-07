@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple
+from typing import Any, List
 from db.database import connect_to_database
 from models.user import UserCreate, UserInDB
 import importlib
@@ -15,7 +15,7 @@ def create_new_user(user: UserCreate) -> int:
 
         PARAM = (user.username, get_password_hash(user.password), user.email)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         cur.execute(SQLTEXT, tuple(PARAM))
         con.commit()
@@ -24,12 +24,12 @@ def create_new_user(user: UserCreate) -> int:
         return user_id
 
 
-def read_users_from_db(limit, offset) -> List[Tuple]:
+def read_users_from_db(limit, offset) -> List[dict]:
     with connect_to_database() as con:
         SQLTEXT = """SELECT * from users LIMIT %s OFFSET %s"""
         PARAM: List[Any] = [limit, offset]
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         cur.execute(SQLTEXT, tuple(PARAM))
         result = cur.fetchall()
@@ -37,9 +37,9 @@ def read_users_from_db(limit, offset) -> List[Tuple]:
         return result
 
 
-def read_user_by_id_from_db(user_id: int) -> Tuple:
+def read_user_by_id_from_db(user_id: int) -> dict:
     with connect_to_database() as con:
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         SQLTEXT = """SELECT * FROM users WHERE id = %s"""
         PARAM = (user_id,)
@@ -51,9 +51,9 @@ def read_user_by_id_from_db(user_id: int) -> Tuple:
         return result
 
 
-def read_user_by_email_from_db(email_address: str) -> Tuple:
+def read_user_by_email_from_db(email_address: str) -> dict:
     with connect_to_database() as con:
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         SQLTEXT = """SELECT * FROM users WHERE email = %s"""
         PARAM = (email_address,)
@@ -67,7 +67,7 @@ def read_user_by_email_from_db(email_address: str) -> Tuple:
 
 def delete_user_from_db(user_id: int) -> int:
     with connect_to_database() as con:
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         SQLTEXT = """DELETE FROM users WHERE id = %s"""
         PARAM = (user_id,)
@@ -79,7 +79,7 @@ def delete_user_from_db(user_id: int) -> int:
 
 def update_user_from_db(user: UserInDB) -> UserInDB:
     with connect_to_database() as con:
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
 
         SQLTEXT = """
         UPDATE users
@@ -90,17 +90,39 @@ def update_user_from_db(user: UserInDB) -> UserInDB:
 
         con.commit()
 
-        return UserInDB
+        return user
 
 
-def get_tasks_assigned_user(user_id: int) -> Tuple:
+def get_tasks_assigned_user(
+    user_id: int,
+) -> List[dict]:
     with connect_to_database() as con:
         SQLTEXT = """
-            SELECT task_id FROM user_task WHERE user_id = %s
+            SELECT task_id FROM user_task WHERE user_id = %s LIMIT %s OFFSET %s
         """
         PARAM = (user_id,)
 
-        cur = con.cursor()
+        cur = con.cursor(dictionary=True)
+        cur.execute(SQLTEXT, PARAM)
+
+        result = cur.fetchall()
+
+        return result
+
+
+def get_groups_joined_by_user_in_db(
+    user_id: int, limit: int, offset: int
+) -> List[dict]:
+    with connect_to_database() as con:
+        SQLTEXT = """
+            SELECT group_id
+            FROM user_group
+            WHERE user_id = %s
+            LIMIT %s OFFSET %s
+        """
+        PARAM = (user_id, limit, offset)
+
+        cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)
 
         result = cur.fetchall()

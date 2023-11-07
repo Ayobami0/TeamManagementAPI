@@ -194,7 +194,6 @@ async def add_comment(id: int, comment: Comment):
 
     comment_id = add_task_comments(comment)
 
-
     comment_in_DB = get_task_comments_by_id(comment_id)
 
     return as_CommentDB(comment_in_DB)

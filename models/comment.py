@@ -14,6 +14,6 @@ class Comment(CommentBase):
 
 
 class CommentInDB(CommentBase):
-    sent_at: datetime
+    posted_at: datetime
     edited_at: Optional[datetime] = None
     id: int
