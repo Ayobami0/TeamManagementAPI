@@ -106,7 +106,7 @@ def init_db():
                 date_sent TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 date_edited TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY(id),
-                FOREIGN KEY (group_id) REFERENCES groups (id),
+                FOREIGN KEY (group_id) REFERENCES `groups` (id),
                 FOREIGN KEY (sender_id) REFERENCES users (id)
             )
             """
@@ -125,7 +125,7 @@ def init_db():
                     user_id,
                     group_id
                 ),
-                FOREIGN KEY (group_id) REFERENCES groups (id),
+                FOREIGN KEY (group_id) REFERENCES `groups` (id),
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )
             """
@@ -142,7 +142,7 @@ def init_db():
                 user_id,
                 group_id
             ),
-            FOREIGN KEY(group_id) REFERENCES groups(id),
+            FOREIGN KEY(group_id) REFERENCES `groups`(id),
             FOREIGN KEY(user_id) REFERENCES users(id)
         )
         """
