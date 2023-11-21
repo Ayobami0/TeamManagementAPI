@@ -83,15 +83,15 @@ def init_db():
         # Groups table
         cur.execute(
             """
-            CREATE TABLE IF NOT EXISTS groups (
-                id INT AUTO_INCREMENT,
-                name VARCHAR(255),
-                description VARCHAR(255),
-                date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                created_by INT,
-                PRIMARY KEY(id),
-                FOREIGN KEY(created_by) REFERENCES users(id)
-            )
+        CREATE TABLE IF NOT EXISTS `groups` (
+            id INT AUTO_INCREMENT,
+            name VARCHAR(255),
+            description VARCHAR(255),
+            date_created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            created_by INT,
+            PRIMARY KEY (id),
+            FOREIGN KEY(created_by) REFERENCES users(id)
+        )
             """
         )
 
