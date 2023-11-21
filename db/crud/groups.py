@@ -15,7 +15,7 @@ def create_new_group(group: GroupCreate) -> int:
                     name,
                     description,
                     created_by
-                ) VALUES (%s, %s, %s)
+                ) VALUES (%s, %s, %s);
             """,
                 (
                     group.name,
@@ -27,6 +27,7 @@ def create_new_group(group: GroupCreate) -> int:
             group_id = cur.lastrowid
 
             promote(group.created_by, group_id)
+            add_user_to_group_in_db(group_id, group.created_by)
 
             return group_id
         except Exception:
@@ -110,6 +111,7 @@ def check_user_in_group(group_id, user_id):
         """,
             (user_id, group_id),
         )
+        print(group_id, user_id)
         if cur.fetchone():
             return True
         else:
@@ -123,7 +125,7 @@ def add_user_to_group_in_db(group_id, user_id):
             cur.execute(
                 """
                 INSERT INTO user_group (user_id, group_id)
-                VALUES (name = %s, %s)
+                VALUES (%s, %s)
             """,
                 (user_id, group_id),
             )
@@ -142,5 +144,26 @@ def remove_user_from_group_in_db(group_id, user_id):
                 (user_id, group_id),
             )
             con.commit()
+        except Exception:
+            raise HTTPException(500, "An Error Occured")
+
+
+def get_all_users_in_group(group_id: int):
+    with connect_to_database() as con:
+        cur = con.cursor(dictionary=True)
+        try:
+            cur.execute(
+                """
+                SELECT *
+                FROM users
+                WHERE id = ANY (
+                    SELECT user_id
+                    FROM user_group
+                    WHERE group_id = %s
+                    )
+                """,
+                (group_id,),
+            )
+            return cur.fetchall()
         except Exception:
             raise HTTPException(500, "An Error Occured")

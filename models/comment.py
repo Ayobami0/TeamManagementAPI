@@ -5,7 +5,7 @@ from pydantic import BaseModel
 
 class CommentBase(BaseModel):
     message: str
-    sender_id: int
+    poster_id: int
     task_id: int
 
 

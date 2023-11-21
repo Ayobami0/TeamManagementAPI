@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.status import HTTP_202_ACCEPTED
-from db.crud.admins import demote, is_admin, promote
+from db.crud.admins import demote, is_admin, promote, show_all_admins
 from db.crud.chats import (
     delete_chat_from_group_in_db,
+    get_all_chats_in_db,
     get_chat_by_id_in_db,
     send_chat_to_group_in_db,
+    update_chat_in_group_in_db,
 )
 from db.crud.groups import (
     add_user_to_group_in_db,
@@ -16,7 +18,7 @@ from db.crud.groups import (
     update_group_in_db,
 )
 from db.crud.users import read_user_by_id_from_db
-from db.factories import as_GroupDB
+from db.factories import as_ChatDB, as_GroupDB, as_UserDB
 from models.chats import Chat, ChatInDB
 from models.group import GroupCreate, GroupUpdate
 
@@ -132,6 +134,24 @@ is not part of this group",
     return group
 
 
+@group_router.get("/{id}/admins")
+async def list_admin_in_group(id: int, limit: int = 10, offset: int = 0):
+    group = get_group_by_id_db(id)
+    if group is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=f"Group with id {id} does not exist.",
+        )
+    return [
+        as_UserDB(admin)
+        for admin in show_all_admins(
+            id,
+            limit,
+            offset,
+        )
+    ]
+
+
 @group_router.post("/{id}/admin/{admin_id}")
 async def add_user_to_group(id: int, admin_id: int, user_id: int):
     group = get_group_by_id_db(id)
@@ -186,6 +206,21 @@ is not part of this group",
     remove_user_from_group_in_db(id, user_id)
 
     return group
+
+
+@group_router.get("/{id}/messages")
+async def all_message(id: int, limit: int = 10, offset: int = 0):
+    group = get_group_by_id_db(id)
+
+    if group is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=f"Group with id {id} does not exist.",
+        )
+
+    chats = get_all_chats_in_db(id, limit, offset)
+
+    return [as_ChatDB(chat) for chat in chats]
 
 
 @group_router.post("/{id}/message")
@@ -256,5 +291,43 @@ is not part of this group",
         )
 
     delete_chat_from_group_in_db(chat_message)
+
+    return group
+
+
+@group_router.patch("/{id}/message/{message_id}")
+async def update_message_content(id: int, message_id: int, chat_message: Chat):
+    group = get_group_by_id_db(id)
+    if chat_message.group_id != id:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            detail=f"Mismatch group.",
+        )
+
+    if read_user_by_id_from_db(chat_message.sender_id) is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {chat_message.sender_id} does not exist.",
+        )
+
+    if not check_user_in_group(id, chat_message.sender_id):
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=f"User with id {chat_message.sender_id} \
+is not part of this group",
+        )
+    if group is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=f"Group with id {id} does not exist.",
+        )
+    if not get_chat_by_id_in_db(message_id):
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=f"No message with id {message_id} \
+has been sent to this group",
+        )
+
+    update_chat_in_group_in_db(chat_message)
 
     return group

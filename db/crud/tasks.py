@@ -16,15 +16,15 @@ def create_new_task(task: Task) -> int:
             INSERT INTO tasks (
                 title,
                 description,
-                status,
-                assigner_id
+                assigner_id,
+                group_id
             ) VALUES (%s, %s, %s, %s)
         """,
             (
                 task.title,
                 task.description,
-                task.status.value,
                 task.assigner_id,
+                task.group_id
             ),
         )
         con.commit()
@@ -138,7 +138,7 @@ def assign_task_to_user(task_id: int, users_id: List[int]) -> int:
 def unassign_task_from_user(task_id: int, users_id: List[int]) -> int:
     with connect_to_database() as con:
         SQLTEXT = """
-        DELETE FROM user_task WHERE users_id = %s AND task_id = %s
+        DELETE FROM user_task WHERE user_id = %s AND task_id = %s
         """
         PARAMS = tuple(zip(users_id, [task_id for _ in range(len(users_id))]))
 
@@ -203,7 +203,7 @@ def add_task_comments(comment: Comment) -> int:
         INSERT INTO comments (message, poster_id, task_id) VALUES
         (%s, %s, %s)
         """
-        PARAM = (comment.message, comment.sender_id, comment.task_id,)
+        PARAM = (comment.message, comment.poster_id, comment.task_id,)
 
         cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)

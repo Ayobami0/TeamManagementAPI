@@ -13,7 +13,6 @@ class TaskStatus(Enum):
 class TaskBase(BaseModel):
     title: str
     description: str
-    status: TaskStatus
     group_id: int
     assigner_id: int
     assignees_id: List[int] = []
@@ -24,6 +23,7 @@ class TaskInDB(TaskBase):
     updated_at: Optional[datetime] = None
     created_at: datetime
     completed_at: Optional[datetime] = None
+    status: TaskStatus
 
 
 class Task(TaskBase):

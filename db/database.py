@@ -25,7 +25,8 @@ def init_db():
             username VARCHAR(255),
             password VARCHAR(64),
             email VARCHAR(255),
-            PRIMARY KEY (id)
+            PRIMARY KEY (id),
+            UNIQUE (email)
         )
         """
         )
@@ -41,9 +42,10 @@ def init_db():
             updated_at TIMESTAMP
             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             completed_at TIMESTAMP NULL,
-            status VARCHAR(255) NOT NULL,
+            status ENUM('OPEN', 'PROCESSING', 'COMPLETED')
+                DEFAULT 'OPEN',
             assigner_id INT,
-            group_id INT,
+            group_id INT NOT NULL,
             PRIMARY KEY (id),
             FOREIGN KEY (assigner_id) REFERENCES users(id),
             FOREIGN KEY (group_id) REFERENCES users(id)
@@ -57,7 +59,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS comments (
             id INT AUTO_INCREMENT,
             posted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            edited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            edited_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            ON UPDATE CURRENT_TIMESTAMP,
             task_id INT,
             poster_id INT,
             message VARCHAR(255),

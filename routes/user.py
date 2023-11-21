@@ -16,7 +16,7 @@ from db.crud.users import (
 from db.factories import as_GroupDB, as_TaskDB, as_UserDB
 from models.task import Task
 
-from models.user import UserCreate, UserInDB
+from models.user import UserCreate, UserInDB, UserUpdate
 from security.utils import get_current_user
 
 user_create_router = APIRouter(prefix="/users", tags=["Auth"])
@@ -68,15 +68,17 @@ async def create_user(user: UserCreate, response: Response):
 
 
 @user_router.put("/{id}/update", response_model=UserInDB)
-async def update_user(id: int, user: UserInDB):
-    db_tuple = read_user_by_id_from_db(user.id)
+async def update_user(id: int, user_info: UserUpdate):
+    db_tuple = read_user_by_id_from_db(id)
     if not db_tuple:
         raise HTTPException(
             status.HTTP_404_NOT_FOUND,
             detail=f"User with id {id} does not exist.",
         )
 
-    return update_user_from_db(user)
+    user = read_user_by_id_from_db(update_user_from_db(id, user_info))
+
+    return as_UserDB(user)
 
 
 @user_router.delete("/{id}/delete")
@@ -132,4 +134,3 @@ async def get_groups_joined_by_user(
     ]
 
     return groups
-

@@ -12,13 +12,14 @@ from models.user import UserInDB
 
 def as_TaskDB(db_result: dict) -> TaskInDB:
     id: int = db_result.get("id")
+
     assignees_id = [
-        user_id[0] for user_id in
-        get_users_assigned_task(id) if len(user_id) > 0
+        user_id.get('user_id') for user_id in
+        get_users_assigned_task(id)
     ]
     return TaskInDB(
-        **db_result,
         assignees_id=assignees_id,
+        **db_result,
     )
 
 
@@ -26,8 +27,8 @@ def as_UserDB(db_result: dict) -> UserInDB:
     id: int = db_result.get("id")
 
     assigned_tasks = [
-        task_id[0] for task_id in
-        get_tasks_assigned_user(id) if len(task_id) > 0
+        task_id.get('task_id') for task_id in
+        get_tasks_assigned_user(id)
     ]
     return UserInDB(
         **db_result,
@@ -51,6 +52,6 @@ def as_GroupDB(db_result: dict) -> GroupInDB:
 def as_TagDB(db_result: dict) -> TagInDB:
     id = db_result.get("id")
 
-    tasks = [task_id[0] for task_id in get_tasks_with_tag(id)]
+    tasks = [task_id.get('task_id') for task_id in get_tasks_with_tag(id)]
 
     return TagInDB(**db_result, tasks=tasks)

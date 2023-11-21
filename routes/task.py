@@ -1,5 +1,7 @@
 from typing import List, Optional
 from typing_extensions import Annotated
+from db.crud.admins import is_admin
+from db.crud.groups import get_group_by_id_db
 from fastapi import APIRouter, Body, HTTPException, status, Depends
 from db.crud.tasks import (
     add_task_comments,
@@ -42,6 +44,7 @@ async def get_tasks(
 ):
     tasks = [as_TaskDB(task) for task in get_all_task(limit, offset, status)]
 
+    print(tasks)
     return tasks
 
 
@@ -51,11 +54,13 @@ async def get_task(id: int):
     if task is None:
         raise HTTPException(404, f"Task with id {id} not found")
 
-    return task
+    return as_TaskDB(task)
 
 
 @task_router.post("", response_model=TaskInDB)
 async def create_task(task: Task):
+    if get_group_by_id_db(task.group_id) is None:
+        raise HTTPException(404, f"Group not found")
     task_id = create_new_task(task)
     task_inDB = get_task_by_id(task_id)
 
@@ -124,17 +129,17 @@ async def assign_task(
         if get_user_by_id(user_id) is None:
             raise HTTPException(404, f"User with id {id} not found")
 
-    updated_task_id = assign_task_to_user(
+    assign_task_to_user(
         task_id=id,
         users_id=assignees_to_add,
     )
 
-    task = as_TaskDB(get_task_by_id(updated_task_id))
+    task = as_TaskDB(get_task_by_id(id))
 
     return task
 
 
-@task_router.delete("/{id}/assign", response_model=TaskInDB)
+@task_router.delete("/{id}/unassign", response_model=TaskInDB)
 async def unasign_task(
     id: int,
     assignees_to_remove: Annotated[
@@ -151,12 +156,12 @@ async def unasign_task(
         if read_user_by_id_from_db(user_id) is None:
             raise HTTPException(404, f"User with id {id} not found")
 
-    updated_task_id = unassign_task_from_user(
+    unassign_task_from_user(
         task_id=id,
         users_id=assignees_to_remove,
     )
 
-    task = as_TaskDB(get_task_by_id(updated_task_id))
+    task = as_TaskDB(get_task_by_id(id))
 
     return task
 
@@ -192,6 +197,11 @@ async def add_comment(id: int, comment: Comment):
     if task is None:
         raise HTTPException(404, f"Task with id {id} not found")
 
+    user = read_user_by_id_from_db(comment.poster_id)
+
+    if user is None:
+        raise HTTPException(404, f"User with id {id} not found")
+
     comment_id = add_task_comments(comment)
 
     comment_in_DB = get_task_comments_by_id(comment_id)
@@ -199,16 +209,25 @@ async def add_comment(id: int, comment: Comment):
     return as_CommentDB(comment_in_DB)
 
 
-@task_router.delete("/{id}/comments/{comment_id}")
-async def delete_comment(id: int, comment_id: int):
+@task_router.delete("/{id}/user/{user_id}/comments/{comment_id}")
+async def delete_comment(id: int, user_id: int, comment_id: int):
     task = get_task_by_id(id)
     comment = get_task_comments_by_id(comment_id)
+    user = read_user_by_id_from_db(user_id)
+
+    if user is None:
+        raise HTTPException(404, f"User with id {id} not found")
 
     if task is None:
         raise HTTPException(404, f"Task with id {id} not found")
 
     if comment is None:
         raise HTTPException(404, f"Comment with id {id} not found")
+
+    if user_id != as_CommentDB(comment).poster_id or not is_admin(
+        user_id, as_TaskDB(task).group_id
+    ):
+        raise HTTPException(402, f"Not Permitted")
 
     comment_id_deleted = delete_task_comments(comment_id)
 
@@ -216,16 +235,23 @@ async def delete_comment(id: int, comment_id: int):
         pass
 
 
-@task_router.patch("/{id}/comments/{comment_id}")
-async def edit_comment(id: int, comment_id: int, edited_text: str):
+@task_router.patch("/{id}/user/user_id/comments/{comment_id}")
+async def edit_comment(id: int, comment_id: int, user_id, edited_text: str):
     task = get_task_by_id(id)
     comment = get_task_comments_by_id(comment_id)
+    user = read_user_by_id_from_db(user_id)
+
+    if user is None:
+        raise HTTPException(404, f"User with id {id} not found")
 
     if task is None:
         raise HTTPException(404, f"Task with id {id} not found")
 
     if comment is None:
         raise HTTPException(404, f"Comment with id {id} not found")
+
+    if user_id != as_CommentDB(comment).poster_id:
+        raise HTTPException(402, f"Not Permitted")
 
     comment_in_DB = edit_task_comments(comment_id, edited_text)
 

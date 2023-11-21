@@ -15,7 +15,7 @@ def create_new_tag(tag_name: str) -> int:
         return cur.lastrowid
 
 
-def read_tag_from_db_by_id(id) -> tuple:
+def read_tag_from_db_by_id(id) -> dict:
     with connect_to_database() as con:
         cur = con.cursor(dictionary=True)
 
@@ -28,7 +28,7 @@ def read_tag_from_db_by_id(id) -> tuple:
         return result
 
 
-def read_tags_from_db() -> List[tuple]:
+def read_tags_from_db() -> List[dict]:
     with connect_to_database() as con:
         cur = con.cursor(dictionary=True)
 
@@ -67,7 +67,7 @@ def delete_tags_from_db(tag_id: int):
         con.commit()
 
 
-def get_tasks_with_tag(tag_id) -> List[tuple]:
+def get_tasks_with_tag(tag_id) -> List[dict]:
     with connect_to_database() as con:
         cur = con.cursor(dictionary=True)
 

@@ -1,6 +1,6 @@
 from typing import Any, List
 from db.database import connect_to_database
-from models.user import UserCreate, UserInDB
+from models.user import UserCreate, UserInDB, UserUpdate
 import importlib
 
 
@@ -77,30 +77,39 @@ def delete_user_from_db(user_id: int) -> int:
         return cur.lastrowid()
 
 
-def update_user_from_db(user: UserInDB) -> UserInDB:
+def update_user_from_db(id, user: UserUpdate):
     with connect_to_database() as con:
         cur = con.cursor(dictionary=True)
+
+        get_password_hash = importlib.import_module(
+            "security.utils",
+        ).get_password_hash
 
         SQLTEXT = """
         UPDATE users
         SET username = %s, password = %s, email = %s WHERE id = %s"""
-        PARAM = (user.username, user.hashed_password, user.email, user.id)
+        PARAM = (
+            user.username,
+            get_password_hash(user.new_password),
+            user.email,
+            id,
+        )
 
         cur.execute(SQLTEXT, PARAM)
 
         con.commit()
 
-        return user
+        return id
 
 
 def get_tasks_assigned_user(
-    user_id: int,
+    user_id: int, limit: int = 10, offset: int = 0
 ) -> List[dict]:
     with connect_to_database() as con:
         SQLTEXT = """
             SELECT task_id FROM user_task WHERE user_id = %s LIMIT %s OFFSET %s
         """
-        PARAM = (user_id,)
+        PARAM = (user_id, limit, offset)
 
         cur = con.cursor(dictionary=True)
         cur.execute(SQLTEXT, PARAM)
