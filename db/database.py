@@ -47,8 +47,12 @@ def init_db():
             assigner_id INT,
             group_id INT NOT NULL,
             PRIMARY KEY (id),
-            FOREIGN KEY (assigner_id) REFERENCES users(id),
+            FOREIGN KEY (assigner_id) REFERENCES users(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE,
             FOREIGN KEY (group_id) REFERENCES users(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE
         )
         """
         )
@@ -65,8 +69,12 @@ def init_db():
             poster_id INT,
             message VARCHAR(255),
             PRIMARY KEY (id),
-            FOREIGN KEY(task_id) REFERENCES tasks(id),
+            FOREIGN KEY(task_id) REFERENCES tasks(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE,
             FOREIGN KEY(poster_id) REFERENCES users(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE
         )
         """
         )
@@ -91,6 +99,8 @@ def init_db():
             created_by INT,
             PRIMARY KEY (id),
             FOREIGN KEY(created_by) REFERENCES users(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE
         )
             """
         )
@@ -106,8 +116,12 @@ def init_db():
                 date_sent TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 date_edited TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY(id),
-                FOREIGN KEY (group_id) REFERENCES `groups` (id),
+                FOREIGN KEY (group_id) REFERENCES `groups` (id)
+                ON UPDATE CASCADE
+                ON DELETE CASCADE,
                 FOREIGN KEY (sender_id) REFERENCES users (id)
+                ON UPDATE CASCADE
+                ON DELETE CASCADE
             )
             """
         )
@@ -125,8 +139,12 @@ def init_db():
                     user_id,
                     group_id
                 ),
-                FOREIGN KEY (group_id) REFERENCES `groups` (id),
+                FOREIGN KEY (group_id) REFERENCES `groups` (id)
+                ON UPDATE CASCADE
+                ON DELETE CASCADE,
                 FOREIGN KEY (user_id) REFERENCES users (id)
+                ON UPDATE CASCADE
+                ON DELETE CASCADE
             )
             """
         )
@@ -142,8 +160,12 @@ def init_db():
                 user_id,
                 group_id
             ),
-            FOREIGN KEY(group_id) REFERENCES `groups`(id),
+            FOREIGN KEY(group_id) REFERENCES `groups`(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE,
             FOREIGN KEY(user_id) REFERENCES users(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE
         )
         """
         )
@@ -157,8 +179,12 @@ def init_db():
                 user_id,
                 task_id
             ),
-            FOREIGN KEY(task_id) REFERENCES tasks(id),
+            FOREIGN KEY(task_id) REFERENCES tasks(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE,
             FOREIGN KEY(user_id) REFERENCES users(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE
         )
         """)
 
@@ -172,8 +198,12 @@ def init_db():
                 tag_id,
                 task_id
             ),
-            FOREIGN KEY(task_id) REFERENCES tasks(id),
+            FOREIGN KEY(task_id) REFERENCES tasks(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE,
             FOREIGN KEY(tag_id) REFERENCES tags(id)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE
         )
         """
         )

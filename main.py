@@ -9,7 +9,7 @@ from db.database import init_db
 
 init_db()
 
-app = FastAPI()
+app = FastAPI(redoc_url='/docs', docs_url=None)
 
 app.include_router(user_router)
 app.include_router(user_create_router)
