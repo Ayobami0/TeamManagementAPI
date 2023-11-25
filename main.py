@@ -9,16 +9,16 @@ from db.database import init_db
 
 init_db()
 
+version_prefix = "/api/v1"
+
 app = FastAPI(
-    redoc_url="/docs",
+    redoc_url="{}/docs".format(version_prefix),
     docs_url=None,
-    version="1.0",
-    root_path="/api/v1",
 )
 
-app.include_router(user_router)
-app.include_router(user_create_router)
-app.include_router(task_router)
-app.include_router(tag_router)
-app.include_router(auth_router)
-app.include_router(group_router)
+app.include_router(user_router, prefix=version_prefix)
+app.include_router(user_create_router, prefix=version_prefix)
+app.include_router(task_router, prefix=version_prefix)
+app.include_router(tag_router, prefix=version_prefix)
+app.include_router(auth_router, prefix=version_prefix)
+app.include_router(group_router, prefix=version_prefix)
