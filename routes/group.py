@@ -1,5 +1,6 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
+from models.user import User, UserInDB
 from starlette.status import HTTP_202_ACCEPTED
 from db.crud.admins import demote, is_admin, promote, show_all_admins
 from db.crud.chats import (
@@ -51,7 +52,7 @@ async def get_group_by_id(id: int):
     return group
 
 
-@group_router.post("")
+@group_router.post("", response_model=GroupInDB)
 async def create_group(group: GroupCreate):
     group_id = create_new_group(group)
 
@@ -59,7 +60,7 @@ async def create_group(group: GroupCreate):
     return as_GroupDB(new_group)
 
 
-@group_router.put("/{id}")
+@group_router.put("/{id}", response_model=GroupInDB)
 async def update_group(id, update: GroupUpdate):
     if get_group_by_id_db(id) is None:
         raise HTTPException(
@@ -84,7 +85,7 @@ async def delete_group(id: int):
     remove_group_in_db(id)
 
 
-@group_router.post("/{id}/admin/{admin_id}/promote")
+@group_router.post("/{id}/admin/{admin_id}/promote", response_model=GroupInDB)
 async def promote_user(id: int, admin_id: int, user_id: int):
     group = get_group_by_id_db(id)
     if group is None:
@@ -120,7 +121,7 @@ is not part of this group",
     return group
 
 
-@group_router.delete("/{id}/admin/{admin_id}/demote")
+@group_router.delete("/{id}/admin/{admin_id}/demote", response_model=GroupInDB)
 async def demote_user(id: int, admin_id: int, user_id: int):
     group = get_group_by_id_db(id)
     if group is None:
@@ -156,7 +157,7 @@ is not part of this group",
     return group
 
 
-@group_router.get("/{id}/admins")
+@group_router.get("/{id}/admins", response_model=List[UserInDB])
 async def list_admin_in_group(id: int, limit: int = 10, offset: int = 0):
     group = get_group_by_id_db(id)
     if group is None:
@@ -174,7 +175,7 @@ async def list_admin_in_group(id: int, limit: int = 10, offset: int = 0):
     ]
 
 
-@group_router.post("/{id}/admin/{admin_id}")
+@group_router.post("/{id}/admin/{admin_id}", response_model=GroupInDB)
 async def add_user_to_group(id: int, admin_id: int, user_id: int):
     group = get_group_by_id_db(id)
     if group is None:
@@ -199,7 +200,7 @@ async def add_user_to_group(id: int, admin_id: int, user_id: int):
     return group
 
 
-@group_router.delete("/{id}/admin/{admin_id}")
+@group_router.delete("/{id}/admin/{admin_id}", response_model=GroupInDB)
 async def remove_user_from_group(id: int, admin_id: int, user_id: int):
     group = get_group_by_id_db(id)
     if group is None:
@@ -230,7 +231,7 @@ is not part of this group",
     return group
 
 
-@group_router.get("/{id}/messages")
+@group_router.get("/{id}/messages", response_model=ChatInDB)
 async def all_message(id: int, limit: int = 10, offset: int = 0):
     group = get_group_by_id_db(id)
 
@@ -245,7 +246,7 @@ async def all_message(id: int, limit: int = 10, offset: int = 0):
     return [as_ChatDB(chat) for chat in chats]
 
 
-@group_router.post("/{id}/message")
+@group_router.post("/{id}/message", response_model=GroupInDB)
 async def send_message(id: int, chat_message: Chat):
     group = get_group_by_id_db(id)
     if chat_message.group_id != id:
@@ -277,7 +278,7 @@ is not part of this group",
     return group
 
 
-@group_router.delete("/{id}/message")
+@group_router.delete("/{id}/message", response_model=GroupInDB)
 async def remove_message(id: int, chat_message: ChatInDB):
     group = get_group_by_id_db(id)
 
@@ -317,7 +318,7 @@ is not part of this group",
     return group
 
 
-@group_router.patch("/{id}/message/{message_id}")
+@group_router.patch("/{id}/message/{message_id}", response_model=GroupInDB)
 async def update_message_content(id: int, message_id: int, chat_message: Chat):
     group = get_group_by_id_db(id)
     if chat_message.group_id != id:
