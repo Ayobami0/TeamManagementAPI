@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from starlette.status import HTTP_202_ACCEPTED
 from db.crud.admins import demote, is_admin, promote, show_all_admins
@@ -13,6 +14,7 @@ from db.crud.groups import (
     check_user_in_group,
     create_new_group,
     get_group_by_id_db,
+    get_group_in_db,
     remove_group_in_db,
     remove_user_from_group_in_db,
     update_group_in_db,
@@ -20,13 +22,33 @@ from db.crud.groups import (
 from db.crud.users import read_user_by_id_from_db
 from db.factories import as_ChatDB, as_GroupDB, as_UserDB
 from models.chats import Chat, ChatInDB
-from models.group import GroupCreate, GroupUpdate
+from models.group import GroupCreate, GroupInDB, GroupUpdate
 
 from security.utils import get_current_user
 
 group_router = APIRouter(
     tags=["Groups"], prefix="/groups", dependencies=[Depends(get_current_user)]
 )
+
+
+@group_router.get("", response_model=List[GroupInDB])
+async def get_groups(limit: int = 10, offset: int = 0):
+    groups = get_group_in_db(limit, offset)
+    return [as_GroupDB(group) for group in groups]
+
+
+@group_router.get("/{id}", response_model=GroupInDB)
+async def get_group_by_id(id: int):
+    db_tuple = get_group_by_id_db(id)
+    if not db_tuple:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND,
+            detail=f"Group with id {id} does not exist.",
+        )
+
+    group = as_GroupDB(db_tuple)
+
+    return group
 
 
 @group_router.post("")
