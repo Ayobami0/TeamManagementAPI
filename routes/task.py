@@ -178,7 +178,7 @@ async def delete_task(id: int):
 
 
 # Comments
-@task_router.get("/{id}/comments", response_model=List[Comment])
+@task_router.get("/{id}/comments", response_model=List[CommentInDB])
 async def get_comment(id: int):
     task = get_task_by_id(id)
 
@@ -235,7 +235,9 @@ async def delete_comment(id: int, user_id: int, comment_id: int):
         pass
 
 
-@task_router.patch("/{id}/user/user_id/comments/{comment_id}")
+@task_router.patch(
+    "/{id}/user/user_id/comments/{comment_id}", response_model=CommentInDB
+)
 async def edit_comment(id: int, comment_id: int, user_id, edited_text: str):
     task = get_task_by_id(id)
     comment = get_task_comments_by_id(comment_id)
