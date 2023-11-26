@@ -22,4 +22,3 @@ class UserUpdate(UserBase):
 class UserInDB(UserBase):
     id: int
     hashed_password: str
-    assigned_tasks: List[int] = []

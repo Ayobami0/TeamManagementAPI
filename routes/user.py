@@ -2,19 +2,19 @@ from typing import List
 from fastapi import APIRouter, HTTPException, Response, status, Depends
 from fastapi.responses import JSONResponse
 
-# from fastapi.responses import JSONResponse
 from db.crud.tasks import get_task_by_id
 from db.crud.users import (
     create_new_user,
     delete_user_from_db,
     get_groups_joined_by_user_in_db,
+    get_tasks_assigned_user,
     read_user_by_email_from_db,
     read_user_by_id_from_db,
     read_users_from_db,
     update_user_from_db,
 )
 from db.factories import as_GroupDB, as_TaskDB, as_UserDB
-from models.task import Task
+from models.task import Task, TaskInDB
 
 from models.user import UserCreate, UserInDB, UserUpdate
 from security.utils import get_current_user
@@ -93,7 +93,7 @@ async def delete_user(id: int):
     delete_user_from_db(id)
 
 
-@user_router.get("/{id}/tasks", response_model=List[Task])
+@user_router.get("/{id}/tasks", response_model=List[TaskInDB])
 async def get_tasks_assigned_to_user(
     id: int,
     limit: int = 10,
@@ -105,18 +105,15 @@ async def get_tasks_assigned_to_user(
             status.HTTP_404_NOT_FOUND,
             detail=f"User with id {id} does not exist.",
         )
-    user = as_UserDB(db_tuple)
-    tasks_len = len(user.assigned_tasks)
-    tasks = []
 
-    if not (offset >= tasks_len):
-        for i in range(offset, tasks_len if tasks_len < limit else limit):
-            tasks.append(as_TaskDB(get_task_by_id(user.assigned_tasks[i])))
+    tasks_id = get_tasks_assigned_user(id, limit, offset)
+
+    tasks = [as_TaskDB(task_id) for task_id in tasks_id]
 
     return tasks
 
 
-@user_router.get("/{id}/groups", response_model=List[Task])
+@user_router.get("/{id}/groups", response_model=List[TaskInDB])
 async def get_groups_joined_by_user(
     id: int,
     limit: int = 10,

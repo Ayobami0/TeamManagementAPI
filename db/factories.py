@@ -24,16 +24,9 @@ def as_TaskDB(db_result: dict) -> TaskInDB:
 
 
 def as_UserDB(db_result: dict) -> UserInDB:
-    id: int = db_result.get("id")
-
-    assigned_tasks = [
-        task_id.get('task_id') for task_id in
-        get_tasks_assigned_user(id)
-    ]
     return UserInDB(
         **db_result,
         hashed_password=db_result.get("password"),
-        assigned_tasks=assigned_tasks,
     )
 
 
