@@ -26,7 +26,6 @@ def as_TaskDB(db_result: dict) -> TaskInDB:
 def as_UserDB(db_result: dict) -> UserInDB:
     return UserInDB(
         **db_result,
-        hashed_password=db_result.get("password"),
     )
 
 

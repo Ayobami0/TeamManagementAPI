@@ -1,4 +1,3 @@
-from typing import List
 from pydantic import BaseModel, EmailStr
 
 
@@ -21,4 +20,7 @@ class UserUpdate(UserBase):
 
 class UserInDB(UserBase):
     id: int
+
+
+class UserInDBWithPass(UserInDB):
     hashed_password: str

@@ -16,7 +16,7 @@ from db.crud.users import (
 from db.factories import as_GroupDB, as_TaskDB, as_UserDB
 from models.task import Task, TaskInDB
 
-from models.user import UserCreate, UserInDB, UserUpdate
+from models.user import UserCreate, UserInDB, UserInDBWithPass, UserUpdate
 from security.utils import get_current_user
 
 user_create_router = APIRouter(prefix="/users", tags=["Auth"])
@@ -49,7 +49,7 @@ async def get_user_by_id(id: int):
 
 @user_create_router.post(
     "/create",
-    response_model=UserInDB,
+    response_model=UserInDBWithPass,
 )
 async def create_user(user: UserCreate, response: Response):
     user_exist = read_user_by_email_from_db(user.email)
