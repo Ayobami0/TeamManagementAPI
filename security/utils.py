@@ -27,8 +27,9 @@ def authenticate_user(email_address: str, password: str):
 
     if not user:
         return False
+    hashed_password = user.get("password")
     user = as_UserDB(user)
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, hashed_password):
         return False
     return user
 
