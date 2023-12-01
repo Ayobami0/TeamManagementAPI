@@ -5,14 +5,15 @@ from fastapi.exceptions import HTTPException
 from fastapi.param_functions import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 import config
+from models.user import User, UserInDBWithPass
 
 from security.token import Token
-from security.utils import authenticate_user, create_access_token
+from security.utils import authenticate_user, create_access_token, get_current_user
 
-auth_router = APIRouter(tags=["Auth"], prefix="/token")
+auth_router = APIRouter(tags=["Auth"], prefix="/login")
 
 
-@auth_router.post("", response_model=Token)
+@auth_router.post("/token", response_model=Token)
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -32,3 +33,10 @@ async def login_for_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@auth_router.get("/user/me", response_model=UserInDBWithPass)
+async def read_active_user(
+    current_user: Annotated[User, Depends(get_current_user)],
+):
+    return current_user
