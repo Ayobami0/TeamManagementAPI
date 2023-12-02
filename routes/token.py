@@ -5,7 +5,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.param_functions import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 import config
-from models.user import User, UserInDBWithPass
+from models.user import User, UserInDB, UserInDBWithPass
 
 from security.token import Token
 from security.utils import authenticate_user, create_access_token, get_current_user
@@ -35,7 +35,7 @@ async def login_for_access_token(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@auth_router.get("/user/me", response_model=UserInDBWithPass)
+@auth_router.get("/user/me", response_model=UserInDB)
 async def read_active_user(
     current_user: Annotated[User, Depends(get_current_user)],
 ):
